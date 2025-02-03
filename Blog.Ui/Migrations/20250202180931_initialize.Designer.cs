@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Blog.Ui.Migrations
 {
     [DbContext(typeof(BlogContext))]
-    [Migration("20250129102500_initalize")]
-    partial class initalize
+    [Migration("20250202180931_initialize")]
+    partial class initialize
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,9 +48,6 @@ namespace Blog.Ui.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CategoryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CategoryName")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")

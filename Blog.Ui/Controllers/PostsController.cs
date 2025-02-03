@@ -7,80 +7,72 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Blog.Data.Context;
 using Blog.Data.Models.Concrete;
-using Blog.Business;
 using Blog.Business.Repositories;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Blog.Ui.Controllers
 {
-    public class CategoriesController : Controller
-    {       
+    public class PostsController : Controller
+    {        
+        private readonly IPostRepository _postRepository;
 
         private readonly ICategoryRepository _categoryRepository;
 
-        public CategoriesController(ICategoryRepository categoryRepository)
-        {            
+        public PostsController(IPostRepository postRepository, ICategoryRepository categoryRepository)
+        {           
+            _postRepository = postRepository;
             _categoryRepository = categoryRepository;
-        }
+        }        
 
-        // GET: Categories
+        // GET: PostsController
         public IActionResult Index()
         {
-            return View(_categoryRepository.GetAll());
+            var posts = _postRepository.GetAll().AsQueryable().Include(p => p.Category);
+            return View(posts);
         }
 
-        // GET: Categories/Details/5
+        // GET: PostsController/Details/5
         public IActionResult Details(Guid? id)
         {
-            //if(!id.HasValue)  de kullanılabilir.
             if (id == null)
             {
                 return NotFound();
             }
 
-            var category = _categoryRepository.GetById(id.Value);
-
-            if (category == null)
+            var post = _postRepository.GetById(id.Value);
+            if (post == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(post);
         }
 
-        // GET: Categories/Create
+        // GET: PostsController/Create
         public IActionResult Create()
         {
+            // <option value="Id"> Name </option>
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(),"Id","Name");
             return View();
         }
 
-        // POST: Categories/Create
+        // POST: PostsController/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Id,Name")] Category category)
+        public IActionResult Create([Bind("Title,Content,CreateDate,FullName,CategoryId,Id")] Post post)
         {
             if (ModelState.IsValid)
-            {               
-                _categoryRepository.Add(category);
-                //Burada try-catch kullanmakta fayda var. Try-catch kullanıldığında if ile kontrol etmeye gerek yok
-                try
-                {
-                    _categoryRepository.Save();
-                     return RedirectToAction("Index");
-                    //return View("Index", _categoryRepository.GetAll());
-                }
-                catch
-                {
-                    return BadRequest();
-                }                
+            {
+                _postRepository.Add(post);
+                _postRepository.Save();
+                return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(),"Id","Name", post.CategoryId);
+            return View(post);
         }
 
-        // GET: Categories/Edit/5
+        // GET: PostsController/Edit/5
         public IActionResult Edit(Guid? id)
         {
             if (id == null)
@@ -88,23 +80,23 @@ namespace Blog.Ui.Controllers
                 return NotFound();
             }
 
-            var category = _categoryRepository.GetById(id.Value);
-
-            if (category == null)
+            var post = _postRepository.GetById(id.Value);
+            if (post == null)
             {
                 return NotFound();
             }
-            return View(category);
+            ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(),"Id","Name", post.CategoryId);
+            return View(post);
         }
 
-        // POST: Categories/Edit/5
+        // POST: PostsController/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(Guid id, [Bind("Name,Id")] Category category)
+        public IActionResult Edit(Guid id, [Bind("Title,Content,CreateDate,FullName,CategoryId,Id")] Post post)
         {
-            if (id != category.Id)
+            if (id != post.Id)
             {
                 return NotFound();
             }
@@ -113,12 +105,12 @@ namespace Blog.Ui.Controllers
             {
                 try
                 {
-                   _categoryRepository.Update(category);
-                   _categoryRepository.Save();                   
+                    _postRepository.Update(post);
+                    _postRepository.Save();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_categoryRepository.Any(x=>x.Id == id))
+                    if (!_postRepository.Any(x=>x.Id == id))
                     {
                         return NotFound();
                     }
@@ -127,12 +119,13 @@ namespace Blog.Ui.Controllers
                         throw;
                     }
                 }
+                ViewData["CategoryId"] = new SelectList(_categoryRepository.GetAll(),"Id","Name", post.CategoryId);
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            return View(post);
         }
 
-        // GET: Categories/Delete/5
+        // GET: PostsController/Delete/5
         public IActionResult Delete(Guid? id)
         {
             if (id == null)
@@ -140,30 +133,23 @@ namespace Blog.Ui.Controllers
                 return NotFound();
             }
 
-            var category = _categoryRepository.GetById(id.Value);  
-                          
-            if (category == null)
+            var post = _postRepository.GetById(id.Value);
+            if (post == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(post);
         }
 
-        // POST: Categories/Delete/5
+        // POST: PostsController/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(Guid id)
         {
-            //var category = _categoryRepository.GetById(id);    
-            _categoryRepository.Delete(id);
-            _categoryRepository.Save();
+            _postRepository.Delete(id);
+            _postRepository.Save();
             return RedirectToAction(nameof(Index));
-        }
-
-        // private bool CategoryExists(Guid id)
-        // {
-        //     return _context.Categories.Any(e => e.Id == id);
-        // }
+        }       
     }
 }

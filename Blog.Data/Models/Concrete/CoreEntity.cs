@@ -5,12 +5,14 @@ namespace Blog.Data.Models.Concrete
 {
     public abstract class CoreEntity : ICoreEntity
     {
-        [Key]
-        public Guid Id { get; set; }
-
         public CoreEntity()
         {
             this.Id = Guid.NewGuid();
         }
+        
+        [Key]
+        public Guid Id { get; set; }
+
+        
     }
 }

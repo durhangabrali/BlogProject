@@ -13,6 +13,17 @@ namespace Blog.Data.Context
         {
             
         }
+
+        // protected override void OnModelCreating(ModelBuilder modelBuilder)
+        // {
+        //     base.OnModelCreating(modelBuilder);
+        //     modelBuilder.Entity<Category>()
+        //     .HasData(
+        //         new Category{ Name="Tatil" },
+        //         new Category{ Name="Gezi" }
+        //     );
+        // }      
+        
    }
 
 }
